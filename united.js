@@ -24,12 +24,23 @@ function parseResults(data) {
     return []
   }
   for (let i = 0; i < flights.length; i++) {
+  	let upgradeAvailable = false
     let products = flights[i]['Products']
-    if (products[1]['UpgradeInfo'] &&
-        products[1]['UpgradeInfo']['Available'] === true &&
-        products[1]['UpgradeInfo']['Waitlisted'] === false) {
-      upgrades.push(flights[i])
+    if (products[1]['InstrumentFlightBlockUpgrade'] &&
+        products[1]['InstrumentFlightBlockUpgrade']['Available'] === true &&
+        products[1]['InstrumentFlightBlockUpgrade']['Waitlisted'] === false) {
+		flights[i]["Upgrade"] = true
+		upgradeAvailable = true
     }
+    for (let x = 0; x < flights[i]['Connections'].length; x++) {
+	    if (flights[i]['Connections'][x]['Products'][1]['InstrumentFlightBlockUpgrade'] &&
+	    	flights[i]['Connections'][x]['Products'][1]['InstrumentFlightBlockUpgrade']['Available'] === true &&
+	    	flights[i]['Connections'][x]['Products'][1]['InstrumentFlightBlockUpgrade']['Waitlisted'] === false) {
+			flights[i]['Connections'][x]['Upgrade'] = true;
+			upgradeAvailable = true
+	    }
+    }
+    if (upgradeAvailable === true) upgrades.push(flights[i])
   }
   return upgrades
 }
