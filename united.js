@@ -144,13 +144,13 @@ async function processDate(date) {
     })
 
     let retries = 0
-    while ((results === null || returnedResults < 2) && retries < 90) {
+    while ((results === null || returnedResults < 2) && retries < 60) {
       process.stdout.write('.')
       await timeout(500)
       retries++
     }
-    if (retries == 90) {
-      console.log('TIMEOUT! ', getDateString(date))
+    if (retries == 60) {
+      console.log('TIMEOUT! ', getDateString(date), " (may just be one response)")
     }
     await page.close()
     await browser.close()
