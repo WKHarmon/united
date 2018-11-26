@@ -29,15 +29,17 @@ function parseResults(data) {
     if (products[1]['InstrumentFlightBlockUpgrade'] &&
         products[1]['InstrumentFlightBlockUpgrade']['Available'] === true &&
         products[1]['InstrumentFlightBlockUpgrade']['Waitlisted'] === false) {
-		flights[i]["Upgrade"] = true
+		flights[i]['Upgrade'] = true
 		upgradeAvailable = true
     }
-    for (let x = 0; x < flights[i]['Connections'].length; x++) {
-	    if (flights[i]['Connections'][x]['Products'][1]['InstrumentFlightBlockUpgrade'] &&
-	    	flights[i]['Connections'][x]['Products'][1]['InstrumentFlightBlockUpgrade']['Available'] === true &&
-	    	flights[i]['Connections'][x]['Products'][1]['InstrumentFlightBlockUpgrade']['Waitlisted'] === false) {
-			flights[i]['Connections'][x]['Upgrade'] = true;
-			upgradeAvailable = true
+    if (flights[i]['Connections'] != null) {
+	    for (let x = 0; x < flights[i]['Connections'].length; x++) {
+		    if (flights[i]['Connections'][x]['Products'][1]['InstrumentFlightBlockUpgrade'] &&
+		    	flights[i]['Connections'][x]['Products'][1]['InstrumentFlightBlockUpgrade']['Available'] === true &&
+		    	flights[i]['Connections'][x]['Products'][1]['InstrumentFlightBlockUpgrade']['Waitlisted'] === false) {
+				flights[i]['Connections'][x]['Upgrade'] = true;
+				upgradeAvailable = true
+		    }
 	    }
     }
     if (upgradeAvailable === true) upgrades.push(flights[i])
@@ -63,6 +65,7 @@ function printResults(result) {
 }
 
 async function processDate(date) {
+	let returnedResults = 0
     const browser = await puppeteer.launch()
     function timeout(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
@@ -82,8 +85,10 @@ async function processDate(date) {
         }
         if (msg.request().url == 'https://www.united.com/ual/en/us/flight-search/book-a-flight/flightshopping/getflightresults/rev') {
           try {
-            const data = await msg.json()
-            results = parseResults(data)
+            let data = await msg.json()
+            if (results == null) results = parseResults(data)
+            else results = results.concat(parseResults(data))
+            returnedResults++
           }
           catch (error) {}
         }
@@ -139,12 +144,12 @@ async function processDate(date) {
     })
 
     let retries = 0
-    while (results === null && retries < 60) {
+    while ((results === null || returnedResults < 2) && retries < 90) {
       process.stdout.write('.')
       await timeout(500)
       retries++
     }
-    if (retries == 120) {
+    if (retries == 90) {
       console.log('TIMEOUT! ', getDateString(date))
     }
     await page.close()
