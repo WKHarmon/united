@@ -65,7 +65,8 @@ function printResults(result) {
 }
 
 async function processDate(date) {
-	let returnedResults = 0
+	let haveNonstop = false
+	let haveLayovers = false
     const browser = await puppeteer.launch()
     function timeout(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
@@ -88,7 +89,8 @@ async function processDate(date) {
             let data = await msg.json()
             if (results == null) results = parseResults(data)
             else results = results.concat(parseResults(data))
-            returnedResults++
+            if (data.data['SearchFilters']['HideNoneStop'] === false) haveNonstop = true
+            if (data.data['SearchFilters']['HideLayover'] === false) haveLayovers = true
           }
           catch (error) {}
         }
@@ -144,7 +146,7 @@ async function processDate(date) {
     })
 
     let retries = 0
-    while ((results === null || returnedResults < 2) && retries < 60) {
+    while ((results === null || haveNonstop === false || haveLayovers === false) && retries < 60) {
       process.stdout.write('.')
       await timeout(500)
       retries++
