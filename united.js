@@ -30,7 +30,7 @@ function parseResults(data) {
         products[1]['InstrumentFlightBlockUpgrade']['Available'] === true &&
         products[1]['InstrumentFlightBlockUpgrade']['Waitlisted'] === false) {
 		flights[i]['Upgrade'] = true
-		upgradeAvailable = true
+		if (flights[i]['TravelMinutes'] >= config.minTime) upgradeAvailable = true
     }
     if (flights[i]['Connections'] != null) {
 	    for (let x = 0; x < flights[i]['Connections'].length; x++) {
@@ -38,7 +38,7 @@ function parseResults(data) {
 		    	flights[i]['Connections'][x]['Products'][1]['InstrumentFlightBlockUpgrade']['Available'] === true &&
 		    	flights[i]['Connections'][x]['Products'][1]['InstrumentFlightBlockUpgrade']['Waitlisted'] === false) {
 				flights[i]['Connections'][x]['Upgrade'] = true;
-				upgradeAvailable = true
+				if (flights[i]['Connections'][x]['TravelMinutes'] >= config.minTime) upgradeAvailable = true
 		    }
 	    }
     }
@@ -152,7 +152,7 @@ async function processDate(date) {
       retries++
     }
     if (retries == 60) {
-      console.log('TIMEOUT! ', getDateString(date), " (may just be one response)")
+      console.log('TIMEOUT! ', getDateString(date))
     }
     await page.close()
     await browser.close()
@@ -165,7 +165,7 @@ async function processDate(date) {
 
 // set data based on args
 if (args.length < 4) {
-  console.log('Not enough arguments. Format: [ORG] [DST] [FRM] [TO]')
+  console.log('Not enough arguments. Format: [ORG] [DST] [FRM] [TO] [OPTIONAL:minimum flight length]')
   process.exit(1)
 }
 
@@ -173,7 +173,8 @@ const config = {
   origin: args[0],
   destination: args[1],
   start: new Date(args[2]),
-  end: new Date(args[3])
+  end: new Date(args[3]),
+  minTime: Number(args[4] > 0) ? Number(args[4]) : 0
 }
 
 async function runDates() {
