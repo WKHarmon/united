@@ -1,5 +1,5 @@
 ------------------------------
-$<%= data['PricesByColumn']['UPGRADE'] %>
+$<%= data['PricesByColumn']['ECONOMY-UPGRADEABLE-MUA'] %>
 <% if (!data['Upgrade']) { %>*** Economy - <% }%><%= data['MarketingCarrier'] %><%= data['FlightNumber'] %> <%= data['DepartTimeFormat'] %> > <%= data['DestinationTimeFormat'] %>
 <% if (!data['Upgrade']) { %>*** Economy - <% }%><%= data['OriginDescription'] %> > <%= data['DestinationDescription'] %><% _.forEach(data['Connections'], function(connect) { %>
 <% if (!connect['Upgrade']) { %>*** Economy - <%  }%><%= connect['MarketingCarrier'] %><%= connect['FlightNumber'] %> <%= connect['DepartTimeFormat'] %> > <%= connect['DestinationTimeFormat'] %>
