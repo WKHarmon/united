@@ -99,11 +99,11 @@ async function processDate(date) {
             
             if (data.data['SearchFilters']['HideNoneStop'] === false) {
             	haveNonstop = true
-            	retrievalTimeout = retries + 15
+            	retrievalTimeout = retries + 30
             }
             if (data.data['SearchFilters']['HideLayover'] === false) {
             	haveLayovers = true
-            	retrievalTimeout = retries + 15
+            	retrievalTimeout = retries + 30
             }
           }
           catch (error) {}
