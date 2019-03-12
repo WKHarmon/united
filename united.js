@@ -28,18 +28,22 @@ function parseResults(data) {
   for (let i = 0; i < flights.length; i++) {
   	let upgradeAvailable = false
     let products = flights[i]['Products']
-    if (products[1]['InstrumentFlightBlockUpgrade'] &&
-        products[1]['InstrumentFlightBlockUpgrade']['Available'] === true &&
-        products[1]['InstrumentFlightBlockUpgrade']['Waitlisted'] === false) {
-		flights[i]["Upgrade"] = true
-		upgradeAvailable = true
+    let productIndex = 1
+    if (products[3]) productIndex = 3 // use 3 on Premium Economy routes
+    if (products[productIndex]['InstrumentFlightBlockUpgrade'] &&
+        products[productIndex]['InstrumentFlightBlockUpgrade']['Available'] === true &&
+        products[productIndex]['InstrumentFlightBlockUpgrade']['Waitlisted'] === false) {
+		flights[i]['Upgrade'] = true
+		if (flights[i]['TravelMinutes'] >= config.minTime) upgradeAvailable = true
     }
-    for (let x = 0; x < flights[i]['Connections'].length; x++) {
-	    if (flights[i]['Connections'][x]['Products'][1]['InstrumentFlightBlockUpgrade'] &&
-	    	flights[i]['Connections'][x]['Products'][1]['InstrumentFlightBlockUpgrade']['Available'] === true &&
-	    	flights[i]['Connections'][x]['Products'][1]['InstrumentFlightBlockUpgrade']['Waitlisted'] === false) {
-			flights[i]['Connections'][x]['Upgrade'] = true;
-			upgradeAvailable = true
+    if (flights[i]['Connections'] != null) {
+	    for (let x = 0; x < flights[i]['Connections'].length; x++) {
+		    if (flights[i]['Connections'][x]['Products'][productIndex]['InstrumentFlightBlockUpgrade'] &&
+		    	flights[i]['Connections'][x]['Products'][productIndex]['InstrumentFlightBlockUpgrade']['Available'] === true &&
+		    	flights[i]['Connections'][x]['Products'][productIndex]['InstrumentFlightBlockUpgrade']['Waitlisted'] === false) {
+				flights[i]['Connections'][x]['Upgrade'] = true;
+				if (flights[i]['Connections'][x]['TravelMinutes'] >= config.minTime) upgradeAvailable = true
+		    }
 	    }
     }
     if (upgradeAvailable === true) upgrades.push(flights[i])
@@ -65,6 +69,11 @@ function printResults(result) {
 }
 
 async function processDate(date) {
+	let haveNonstop = false
+	let haveLayovers = false
+	let retrievalTimeout = 120
+	let retries = 0
+	
     const browser = await puppeteer.launch()
     function timeout(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
@@ -84,8 +93,20 @@ async function processDate(date) {
         }
         if (msg.request().url == 'https://www.united.com/ual/en/us/flight-search/book-a-flight/flightshopping/getflightresults/rev') {
           try {
-            const data = await msg.json()
-            results = parseResults(data)
+            let data = await msg.json()
+            if (results == null) results = parseResults(data)
+            else results = results.concat(parseResults(data))
+            // Try until we get both nonstop and layover, or until 15 seconds past the last result.
+            // We can't tell if we're going to get two or one sometimes.
+            
+            if (data.data['SearchFilters']['HideNoneStop'] === false) {
+            	haveNonstop = true
+            	retrievalTimeout = retries + 30
+            }
+            if (data.data['SearchFilters']['HideLayover'] === false) {
+            	haveLayovers = true
+            	retrievalTimeout = retries + 30
+            }
           }
           catch (error) {}
         }
@@ -140,8 +161,7 @@ async function processDate(date) {
       btn.click()
     })
 
-    let retries = 0
-    while (results === null && retries < 60) {
+    while ((results === null || haveNonstop === false || haveLayovers === false) && retries < retrievalTimeout) {
       process.stdout.write('.')
       await timeout(500)
       retries++
@@ -160,7 +180,7 @@ async function processDate(date) {
 
 // set data based on args
 if (args.length < 4) {
-  console.log('Not enough arguments. Format: [ORG] [DST] [FRM] [TO]')
+  console.log('Not enough arguments. Format: [ORG] [DST] [FRM] [TO] [OPTIONAL:minimum flight length]')
   process.exit(1)
 }
 
@@ -168,7 +188,8 @@ const config = {
   origin: args[0],
   destination: args[1],
   start: new Date(args[2]),
-  end: new Date(args[3])
+  end: new Date(args[3]),
+  minTime: Number(args[4] > 0) ? Number(args[4]) : 0
 }
 
 async function runDates() {
