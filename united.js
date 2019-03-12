@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const puppeteer = require('puppeteer')
 const colors = require('colors')
 const args = process.argv.slice(2)

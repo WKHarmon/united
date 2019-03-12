@@ -1,6 +1,6 @@
 ------------------------------
 $<%= data['PricesByColumn']['ECONOMY-UPGRADEABLE-MUA'] %>
-<% if (!data['Upgrade']) { %>*** Economy - <% }%><%= data['MarketingCarrier'] %><%= data['FlightNumber'] %> <%= data['DepartTimeFormat'] %> > <%= data['DestinationTimeFormat'] %>
-<% if (!data['Upgrade']) { %>*** Economy - <% }%><%= data['OriginDescription'] %> > <%= data['DestinationDescription'] %><% _.forEach(data['Connections'], function(connect) { %>
-<% if (!connect['Upgrade']) { %>*** Economy - <%  }%><%= connect['MarketingCarrier'] %><%= connect['FlightNumber'] %> <%= connect['DepartTimeFormat'] %> > <%= connect['DestinationTimeFormat'] %>
-<% if (!connect['Upgrade']) { %>*** Economy - <%  }%><%= connect['OriginDescription'] %> > <%= connect['DestinationDescription'] %><% }) %>
+<%- "\u001b[32m" %><% if (!data['Upgrade']) { %><%- "\u001b[31m" %>E - <% }%><%= data['MarketingCarrier'] %><%= data['FlightNumber'] %> <%= data['DepartTimeFormat'] %> > <%= data['DestinationTimeFormat'] %><%- "\u001b[0m" %>
+<%- "\u001b[32m" %><% if (!data['Upgrade']) { %><%- "\u001b[31m" %>E - <% }%><%= data['OriginDescription'] %> > <%= data['DestinationDescription'] %><%- "\u001b[0m" %><% _.forEach(data['Connections'], function(connect) { %>
+<%- "\u001b[32m" %><% if (!connect['Upgrade']) { %><%- "\u001b[31m" %>E - <%  }%><%= connect['MarketingCarrier'] %><%= connect['FlightNumber'] %> <%= connect['DepartTimeFormat'] %> > <%= connect['DestinationTimeFormat'] %><%- "\u001b[0m" %>
+<%- "\u001b[32m" %><% if (!connect['Upgrade']) { %><%- "\u001b[31m" %>E - <%  }%><%= connect['OriginDescription'] %> > <%= connect['DestinationDescription'] %><%- "\u001b[0m" %><% }) %>
